@@ -15,4 +15,11 @@ class ViberUser(models.Model):
     is_blocked = models.BooleanField(default=False)
 
 
+class FAQ(models.Model):
+
+    question = models.CharField(max_length=128, null=True, blank=True)
+    answer = models.TextField(null=True, blank=True)
+
+    def __str__(self):
+        return self.question
 # Create your models here.

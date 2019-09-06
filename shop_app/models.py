@@ -8,7 +8,7 @@ class Service(models.Model):
     service_type = models.ForeignKey('ServiceType', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name + ":" + self.service_type.name
+        return f'{self.name}: {self.service_type.name}'
 
 
 class Order(models.Model):
@@ -19,11 +19,11 @@ class Order(models.Model):
         (3, 'canceled')
     ]
 
-    total_price = models.DecimalField(max_digits=6, decimal_places=2)
-    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    total_price = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     time = models.DateTimeField(auto_now=True)
     status = models.IntegerField(choices=status_CHOICES, default=0)
-    number_order = models.PositiveIntegerField()
+    number_order = models.PositiveIntegerField(default=0)
 
 
 class OrderLine(models.Model):

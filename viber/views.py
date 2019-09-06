@@ -8,7 +8,8 @@ from viberbot import Api
 from django.conf import settings
 
 from .viber_config import bot_configuration
-from viber.models import ViberUser
+from viber.models import ViberUser, FAQ
+from viber.utils import Keyboard, Button
 
 viber = Api(bot_configuration)
 
@@ -17,12 +18,10 @@ viber = Api(bot_configuration)
 def callback(request):
     if request.method == 'POST':
         viber_request = viber.parse_request(request.body)
-        # user_data = viber.get_user_details(viber_request.sender.id)
-        # print(user_data)
-        # print(viber_request)
         print(viber_request)
+        print("1")
         if isinstance(viber_request, ViberConversationStartedRequest):
-            print(viber_request.user.id)
+            #print(viber_request.user.id)
             v_user, created = ViberUser.objects.get_or_create(
                 viber_id=viber_request.user.id,
                 defaults=
@@ -70,66 +69,25 @@ def callback(request):
                 }
             )
             viber.send_messages(viber_user.viber_id, [TextMessage(text="I listen you", min_api_version=1)])
+            faq = FAQ.objects.all()
+            if viber_request.message.text.startswith("faq"):
+                idd = viber_request.message.text.replace("faq", "")
+                fa = faq.get(id=int(idd))
+                print(fa.answer)
+                print(viber_request.message.text)
+            keyb_faq = Keyboard()
+            for faq_line in faq:
+                action_body = f"faq{faq_line.id}"
+                but = Button(text=faq_line.question, action_type="reply", action_body=action_body, col=6, row=1)
+                keyb_faq.add_button(but)
+            keyb_faq = keyb_faq.to_dict()
 
-            keyboard = {
-                "Type": "keyboard",
-                #"DefaultHeight": False,
-                'CustomDefaultHeight': 70,
-                #'ButtonsGroupColumns': 4,
-                'InputFieldState':'hidden',
-                "Buttons": [
-                    {
-                        "Rows": 2,
-                        "Columns": 2,
-                        "ActionType": "reply",
-                        "ActionBody": "give me you phone number",
-                        "Text": "предоставить номер",
-                        "TextSize": "regular",
-                        "BgColor": "#780000",
-                    },
-                    {
-                        "Rows": 1,
-                        "Columns":2,
-                        "ActionType": "reply",
-                        "ActionBody": "give me you phone number",
-                        "Text": "предоставить номер",
-                        "TextSize": "regular",
-                        "BgColor": "#780000",
-                    },
-
-                    {
-                        "Rows": 2,
-                        "Columns": 2,
-                        "ActionType": "reply",
-                        "ActionBody": "give me you phone number",
-                        "Text": "предоставить номер",
-                        "TextSize": "regular",
-                        "BgColor": "#780000",
-                    }
-                    ,
-                    {
-                        "Rows": 2,
-                        "Columns": 6,
-                        "ActionType": "reply",
-                        "ActionBody": "give me you phone number",
-                        "Text": "предоставить номер",
-                        "TextSize": "regular",
-                        "BgColor": "#780000",
-                    }
-
-                ]
-            }
-
-            # viber.send_messages(
-            #     viber_user.viber_id,
-            #     [
-            #         RichMediaMessage(rich_media=carousel, min_api_version=2)
-            #     ]
-            # )
             viber.send_messages(
                 viber_user.viber_id,
-                [KeyboardMessage(keyboard=keyboard, min_api_version=6)],
+                [KeyboardMessage(keyboard=keyb_faq, min_api_version=6)],
             )
+
+
 
         elif isinstance(viber_request, ViberSubscribedRequest):
             user_id = viber_request.user.id
@@ -142,23 +100,15 @@ def callback(request):
             if viber_user.is_blocked:
                 viber.send_messages(user_id, [TextMessage(text="Fuck off")])
             if hasattr(viber_user, 'user') and not hasattr(viber_user.user, 'phone_nomber'):
-                keyboard = {
-                    "Type": "keyboard",
-                    "DefaultHeight": True,
-                    "Buttons": [
-                        {
-                            "ActionType": "share-phone",
-                            "ActionBody": "give me you phone number",
-                            "Text": "предоставить номер",
-                            "TextSize": "regular",
-                            "BgColor": "#780000",
-                        }
+                key_number = Keyboard()
+                but_num = Button(text="give num", action_type="share-phone", action_body="give me you phone number",
+                                 col=6, row=1)
+                key_number.add_button(but_num)
+                key_number = key_number.to_dict()  # !!!!
 
-                    ]
-                }
                 viber.send_messages(
                     user_id,
-                    [KeyboardMessage(keyboard=keyboard, min_api_version=3)],
+                    [KeyboardMessage(keyboard=key_number, min_api_version=3)],
                 )
         elif isinstance(viber_request, ViberUnsubscribedRequest):
             v_user = ViberUser.objects.update_or_create(
@@ -172,7 +122,9 @@ def callback(request):
 
 
 def set_webhook(request):
-    viber.set_webhook('https://6c396a0a.ngrok.io/viber/callback/')
+    viber.set_webhook('https://7706597a.ngrok.io/viber/callback/', webhook_events=["subscribed", "unsubscribed",
+                                                                                   "conversation_started"])
+
     return HttpResponse(200)
 
 
