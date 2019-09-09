@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from viberbot.api.viber_requests import ViberConversationStartedRequest, ViberMessageRequest, ViberSubscribedRequest, \
     ViberUnsubscribedRequest
 from viberbot.api.messages import TextMessage, KeyboardMessage, RichMediaMessage
+from viberbot.api.messages.message import Message
 from viberbot import Api
 from django.conf import settings
 
@@ -69,23 +70,46 @@ def callback(request):
                 }
             )
             viber.send_messages(viber_user.viber_id, [TextMessage(text="I listen you", min_api_version=1)])
-            faq = FAQ.objects.all()
-            if viber_request.message.text.startswith("faq"):
-                idd = viber_request.message.text.replace("faq", "")
-                fa = faq.get(id=int(idd))
-                print(fa.answer)
-                print(viber_request.message.text)
-            keyb_faq = Keyboard()
-            for faq_line in faq:
-                action_body = f"faq{faq_line.id}"
-                but = Button(text=faq_line.question, action_type="reply", action_body=action_body, col=6, row=1)
-                keyb_faq.add_button(but)
-            keyb_faq = keyb_faq.to_dict()
+
+            main_choice = ('Меню', 'Саит', 'Help')
+            keyb_main = Keyboard()
+
+            for but_name in main_choice:
+                action_body = f"menu{but_name}"
+                but = Button(text=but_name, action_type="reply", action_body=action_body, col=6, row=1)
+                keyb_main.add_button(but)
+
+            keyb_main = keyb_main.to_dict()
 
             viber.send_messages(
                 viber_user.viber_id,
-                [KeyboardMessage(keyboard=keyb_faq, min_api_version=6)],
+                [KeyboardMessage(keyboard=keyb_main, min_api_version=6, tracking_data="main")],
             )
+
+
+            # faq = FAQ.objects.all()
+            # if viber_request.message.text.startswith("faq"):
+            #     idd = viber_request.message.text.replace("faq", "")
+            #     fa = faq.get(id=int(idd))
+            #     print(fa.answer)
+            #     #print(viber_request.message.text)
+            #     mkey = KeyboardMessage(tracking_data=fa.answer)
+            #
+            #     print(mkey.tracking_data)
+            #     viber.send_messages(viber_user.viber_id, [TextMessage(text=fa.answer)])
+            #
+            # keyb_faq = Keyboard()
+            # for faq_line in faq:
+            #     action_body = f"faq{faq_line.id}"
+            #     but = Button(text=faq_line.question, action_type="reply", action_body=action_body, col=6, row=1)
+            #     keyb_faq.add_button(but)
+            # keyb_faq = keyb_faq.to_dict()
+            #
+            # viber.send_messages(
+            #     viber_user.viber_id,
+            #     [KeyboardMessage(keyboard=keyb_faq, min_api_version=6, tracking_data="help")],
+            # )
+
 
 
 
@@ -122,7 +146,7 @@ def callback(request):
 
 
 def set_webhook(request):
-    viber.set_webhook('https://7706597a.ngrok.io/viber/callback/', webhook_events=["subscribed", "unsubscribed",
+    viber.set_webhook('https://cca40583.ngrok.io/viber/callback/', webhook_events=["subscribed", "unsubscribed",
                                                                                    "conversation_started"])
 
     return HttpResponse(200)
