@@ -24,7 +24,7 @@ SECRET_KEY = '$9@*!rtq&+a%n#^@w4=$iow+^x#px8v$6%tel^-32err9oci$k'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['cca40583.ngrok.io', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['2ee1b189.ngrok.io', 'localhost', '127.0.0.1']
 
 # Application definition
 
@@ -55,7 +55,7 @@ ROOT_URLCONF = 'magazin.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ["templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

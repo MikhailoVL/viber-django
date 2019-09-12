@@ -8,6 +8,7 @@ from viberbot.api.messages.message import Message
 from viberbot import Api
 from django.conf import settings
 
+from viber.forms import FAQForm, FAQFormForm
 from .viber_config import bot_configuration
 from viber.models import ViberUser, FAQ
 from viber.utils import Keyboard, Button
@@ -146,7 +147,7 @@ def callback(request):
 
 
 def set_webhook(request):
-    viber.set_webhook('https://cca40583.ngrok.io/viber/callback/', webhook_events=["subscribed", "unsubscribed",
+    viber.set_webhook('https://2ee1b189.ngrok.io/viber/callback/', webhook_events=["subscribed", "unsubscribed",
                                                                                    "conversation_started"])
 
     return HttpResponse(200)
@@ -155,3 +156,14 @@ def set_webhook(request):
 def unset_webhook(request):
     viber.unset_webhook()
     return HttpResponse(200)
+
+
+def create_faq(request):
+    if request.method == "POST":
+        form = FAQFormForm(request.POST)
+        if form.is_valid():
+            return HttpResponse(form.cleaned_data['answer'])
+    else:
+        form = FAQFormForm()
+    return render(request, "viber/faq.html", {'form': form})
+

@@ -15,4 +15,5 @@ class User(AbstractUser):
     phone_nomber = models.CharField(max_length=32, default="")
 
 
+
 # Create your models here.
